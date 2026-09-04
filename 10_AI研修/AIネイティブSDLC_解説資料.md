@@ -1,4 +1,10 @@
 # AI ネイティブ SDLC プレイブック 解説資料
+%%
+この資料の位置づけ
+あくまで、自社プロダクトの開発をしているようなところが前提。
+弊社の配属先は、主にSESや受託開発なので、研修作成のリファレンスとしての優先度は低め。参考程度。
+%%
+
 
 出典: Anthropic「The AI-Native SDLC playbook」(2026年8月21日, Louis Claxton)
 https://claude.com/blog/the-ai-native-sdlc-playbook
@@ -1344,3 +1350,4 @@ CLAUDE.md ──────────────────────→ 
 **関連記事**
 - Anthropic が自社の AI ネイティブ SDLC をどう保護しているか: claude.com/blog/how-anthropic-secures-its-ai-native-software-development-lifecycle
 - Claude Tag が CI/CD のオンコールをどう回しているか: claude.com/blog/ai-ci-cd-on-call
+
