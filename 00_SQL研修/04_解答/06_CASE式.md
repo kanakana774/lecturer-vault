@@ -8,17 +8,18 @@
 
 ### 使用するテーブル
 02章で作成した `products_mst` / `customers_mst` / `orders_trn` をそのまま使います。
+まだ作っていない場合は、02章の DDL スクリプト（`02_DDL（前半用）`）を実行して作成してください。
 
-### リセットSQL
-問題 9 は `UPDATE` で `products_mst` の `memo` を書き換えます。`BEGIN;` … `ROLLBACK;` で囲まずに実行してしまった場合は、次のSQLで元の状態に戻してください。
+### リセット手順
 
-```sql
-UPDATE products_mst SET memo = 'スムージー作りに最適'      WHERE product_id = 7;
-UPDATE products_mst SET memo = '知育玩具・対象年齢3歳から' WHERE product_id = 17;
-UPDATE products_mst SET memo = NULL                        WHERE product_id = 18;
-UPDATE products_mst SET memo = NULL                        WHERE product_id = 20;
-UPDATE products_mst SET memo = 'ギフト包装対応'            WHERE product_id = 23;
-```
+**問題 8 以外はすべて `SELECT` なので、データは変わりません。**
+問題 8 だけ `UPDATE` で `products_mst` の `memo` を書き換えますが、`BEGIN;` … `ROLLBACK;` で囲む形にしてあるので、**そのとおりに実行すればリセットは要りません。**
+
+`ROLLBACK` を忘れて確定してしまった場合は、**DBを作り直して入れ直します。**
+
+1. `DROP DATABASE` → `CREATE DATABASE`
+2. DDL を実行する
+3. テストデータの `INSERT` を実行する
 
 戻ったかどうかは次のSQLで確認します。`memo` が未入力の商品が 7 件（`product_id` = 2, 6, 11, 18, 20, 21, 22）になっていればOKです。
 
@@ -100,40 +101,7 @@ ORDER BY
 
 ---
 
-## 問題 3: 商品カテゴリごとの在庫状況を評価する（クロス集計の基礎）
-- **目的**: `COUNT(CASE ... END)` を使い、条件に応じた件数を横並びに集計する（ピボット／クロス集計の）方法を習得する。
-
-### 問題:
-`products_mst` テーブルから、 **カテゴリごと** に以下の在庫状況別の商品数を集計して表示してください。
-
-- **stock_abundant**: 在庫数が 100 個以上
-- **stock_normal**: 在庫数が 10 個以上 100 個未満
-- **stock_low**: 在庫数が 10 個未満
-
-また、そのカテゴリの **合計商品数 (total_products)** も併せて表示してください。
-
-### 解答:
-```sql
-SELECT
-    category,
-    COUNT(CASE WHEN stock_quantity >= 100 THEN 1 END) AS stock_abundant,
-    COUNT(CASE WHEN stock_quantity >= 10 AND stock_quantity < 100 THEN 1 END) AS stock_normal,
-    COUNT(CASE WHEN stock_quantity < 10 THEN 1 END) AS stock_low,
-    COUNT(*) AS total_products
-FROM
-    products_mst
-GROUP BY
-    category
-ORDER BY
-    category;
-```
-
-### 解説:
-`COUNT` 関数は `NULL` を無視します。CASE式で `ELSE` を省略すると、条件に合わない場合は `NULL` が返るため、条件に合った行だけが「1」となり、結果としてその件数がカウントされます。少し応用的な内容ですが、レポート作成では非常によく使う書き方です（`SUM(CASE WHEN ... THEN 1 ELSE 0 END)` でも同じ結果になります）。
-
----
-
-## 問題 4: 特定カテゴリの商品を優先して並び替える（ORDER BYでのCASE式）
+## 問題 3: 特定カテゴリの商品を優先して並び替える（ORDER BYでのCASE式）
 - **目的**: `ORDER BY` 句内で CASE 式を使用し、特定の条件を満たす行を強制的に先頭や末尾に持ってくる「カスタムソート」の手法を理解する。
 
 ### 問題:
@@ -167,7 +135,7 @@ ORDER BY
 
 ---
 
-## 問題 5: 特定の顧客のみ注文日を調整して表示する（WHERE句でのCASE式）
+## 問題 4: 特定の顧客のみ注文日を調整して表示する（WHERE句でのCASE式）
 - **目的**: `WHERE` 句で条件分岐を行いたい場合の記述方法と、実務的なベストプラクティス（論理演算子 `OR` の活用）を対比して学ぶ。
 
 ### 問題:
@@ -217,7 +185,7 @@ SQLの `WHERE` 句は「行ごとにTrueかFalseかを判定する場所」な�
 
 ---
 
-## 問題 6: 商品メモの有無と在庫状況に応じた評価（NULL と複数条件）
+## 問題 5: 商品メモの有無と在庫状況に応じた評価（NULL と複数条件）
 - **目的**: CASE式内で `IS NULL` と複数の条件(`AND`)を組み合わせ、複雑なビジネスロジックを表現する。
 
 ### 問題:
@@ -253,11 +221,11 @@ NULL の判定は `= NULL` ではなく `IS NULL` / `IS NOT NULL` で行いま�
 
 ## 追加課題（ここから先は任意）
 
-**問題 6 まで**が必須です。ここから先は、早く終わった人・もっと解きたい人向けです。
+**問題 5 まで**が必須です。ここから先は、早く終わった人・もっと解きたい人向けです。
 
 ---
 
-## 問題 7: WHEN の書き順が結果を変える
+## 問題 6: WHEN の書き順が結果を変える
 - **目的**: `CASE` の `WHEN` が上から順に評価され最初に真になった枝で確定するため、条件が排他的でない場合は「優先したい条件を先に書く」必要があることを、キャンセル注文を例に理解する。
 
 ### 問題:
@@ -350,7 +318,7 @@ ORDER BY
 
 ---
 
-## 問題 8: シンプルCASE式では NULL を判定できない
+## 問題 7: シンプルCASE式では NULL を判定できない
 - **目的**: シンプルCASE式（`CASE 列 WHEN 値 …`）は内部的に `=` による等価比較であるため NULL を捕まえられず、NULL の分岐には検索CASE式と `IS NULL` が必要であることを理解する。
 
 ### 問題:
@@ -455,11 +423,11 @@ ORDER BY
 
 ---
 
-## 問題 9: UPDATE の SET 句で CASE を使う（`ELSE` 省略の罠）
+## 問題 8: UPDATE の SET 句で CASE を使う（`ELSE` 省略の罠）
 - **目的**: 1つの `UPDATE` 文で行ごとに違う値をセットする `SET 列 = CASE …` の書き方を習得し、`ELSE` を省略すると条件に合わない行が NULL で潰れることを理解する。
 
 ### 問題:
-> **注意**: この問題は `UPDATE` 文で `products_mst` のデータを実際に書き換えます。この章のあとも同じテーブルを使うので、**`BEGIN;` … `ROLLBACK;` で囲んで実行する**か、章の先頭の **準備 → リセットSQL** で必ず元の状態に戻してください。
+> **注意**: この問題は `UPDATE` 文で `products_mst` のデータを実際に書き換えます。この章のあとも同じテーブルを使うので、**(1)(2)(3) すべて `BEGIN;` … `ROLLBACK;` で囲んで実行してください。** 囲まずに確定してしまった場合は、章の先頭の **準備 → リセット手順** でDBを作り直します。
 
 `products_mst` の **販売中の商品（`deleted_at` が NULL）** だけを対象に、**1つの `UPDATE` 文** で `memo` を次のように更新してください。
 
@@ -480,6 +448,7 @@ ORDER BY
 ### 解答:
 ```sql
 -- (1) 1つの UPDATE で、行ごとに違う値をセットする
+BEGIN;
 UPDATE products_mst
 SET memo = CASE
         WHEN stock_quantity = 0  THEN '【欠品】'       || COALESCE(memo, '')
@@ -503,8 +472,9 @@ WHERE
     memo LIKE '【%'
 ORDER BY
     product_id;
+ROLLBACK;
 
--- (2) ELSE を削除した場合（必ず BEGIN 〜 ROLLBACK で囲んで確認する）
+-- (2) ELSE を削除した場合
 -- CASE はどの WHEN にも当てはまらず ELSE も無いとき NULL を返す。
 -- UPDATE は WHERE に合致した 22 行すべてを書き換えるので、在庫 50 以上の 17 行は
 -- memo が NULL で上書きされ、うち 13 行は入力済みの説明文が消えてしまう。
@@ -519,7 +489,7 @@ WHERE
 SELECT product_id, product_name, memo FROM products_mst ORDER BY product_id;
 ROLLBACK;
 
--- (3) COALESCE を使わない場合（同じく BEGIN 〜 ROLLBACK で囲む）
+-- (3) COALESCE を使わない場合
 -- '【欠品】' || NULL は NULL になるため、memo が未入力の product_id = 18 は
 -- NULL のままとなり【欠品】の印が付かない（product_id = 20 も同様）。
 BEGIN;
@@ -535,7 +505,7 @@ SELECT product_id, product_name, memo FROM products_mst WHERE product_id IN (7, 
 ROLLBACK;
 ```
 
-★ (1) を `BEGIN;` … `ROLLBACK;` で囲まずに実行してしまった場合は、章の先頭の **準備 → リセットSQL** を流して元の状態に戻してください。
+★ `ROLLBACK;` を忘れて確定してしまった場合は、章の先頭の **準備 → リセット手順** でDBを作り直してください。
 
 ### 期待結果:
 
@@ -553,7 +523,7 @@ ROLLBACK;
 
 (3) `COALESCE` なしの場合 ―― `product_id = 18` は `'【欠品】' || NULL` が NULL になるため `memo` は NULL のままで、`【欠品】` の印が付かない（`product_id = 20` も同じく NULL のまま）
 
-リセットSQL実行後に `memo` が未入力の商品
+`ROLLBACK` 後に `memo` が未入力の商品（＝元の状態）
 
 | product_id | product_name |
 | ---: | :--- |
@@ -568,4 +538,4 @@ ROLLBACK;
 ### 解説:
 `UPDATE` は `WHERE` に合致した行すべてを書き換えるため、`CASE` が NULL を返せばその NULL がそのまま書き込まれます。`ELSE memo`（元の列）を書かないと、条件に合わない行の値まで消えてしまうので、`SET 列 = CASE …` では `ELSE 元の列` を必ず書きます。「UPDATE 22」と表示されても実際に値が変わったのは 5 行であり、更新件数＝変更された件数ではない点も押さえてください。
 
-> **⚠️ 講師向けの注意**: 演習後は必ずリセットSQLを流し、`memo` が未入力の商品が 7 件（`product_id` = 2, 6, 11, 18, 20, 21, 22）に戻っていることを確認してください。この状態を前提に 07章の問題 11（`memo` 入力率）などが作られています。
+> **⚠️ `ROLLBACK` を忘れていないか確認してください。** `memo` が未入力の商品が 7 件（`product_id` = 2, 6, 11, 18, 20, 21, 22）に戻っていれば大丈夫です（→ 準備「リセット手順」）。この状態を前提に07章以降の問題が作られているので、確定してしまった場合はDBを作り直してください。
