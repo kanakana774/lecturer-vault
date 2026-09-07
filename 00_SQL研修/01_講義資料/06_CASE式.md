@@ -31,7 +31,7 @@
 | :--- | :--- | :--- |
 | `products_mst.price` | 750 〜 29,800 の幅がある | 数値の範囲で分ける（→ §1-1） |
 | `products_mst.category` | `Electronics` `Books` `Home & Kitchen` `Food` `Stationery` `Toys` の6種 | 値そのもので分ける（→ §1-2） |
-| `products_mst.memo` | 23件のうち**7件が `NULL`**（未入力） | `NULL` の扱い（→ §1-3、§4-1） |
+| `products_mst.memo` | 23件のうち**7件が `NULL`**（未入力） | `NULL` の扱い（→ §4-1） |
 | `products_mst.stock_quantity` | **0 の商品が4件**ある | 境界のある分類（→ §3-1） |
 | `customers_mst.deleted_at` | **退会済みが1人**（山田 恵美）、残りは `NULL` | `NULL` を状態として読む（→ §3-1） |
 
@@ -125,40 +125,19 @@ ORDER BY product_id;
 (5 rows)
 ```
 
-シンプルCASE式は、検索CASE式で `WHEN category = 'Electronics' THEN ...` と書くのと同じ意味です。
-**`=` による比較に固定されている**ぶん短く書けますが、範囲や複数条件は書けません。
-
-### 1-3. シンプルCASE式は `NULL` を捕まえられない
-
-> [!warning] ⚠️ `WHEN NULL` は書けても、絶対に一致しません
-> シンプルCASE式は内部で `列 = 値` の比較をしています。`NULL` との `=` 比較は真でも偽でもなく
-> **UNKNOWN** になるため、`WHEN NULL THEN ...` は一度も選ばれません。
-
-未入力の `memo` を見分けようとした例です。
+**シンプルCASE式は、`列 = 値` の等価比較に固定した検索CASE式の書き換えです。** 上の例は次と同じ意味です。
 
 ```sql
-SELECT product_id, memo,
-  CASE memo WHEN NULL THEN '未入力' ELSE '入力あり' END AS simple_case,
-  CASE WHEN memo IS NULL THEN '未入力' ELSE '入力あり' END AS searched_case
-FROM products_mst
-WHERE product_id IN (1, 2, 6, 21)
-ORDER BY product_id;
+CASE
+  WHEN category = 'Electronics'    THEN '家電'
+  WHEN category = 'Books'          THEN '書籍'
+  WHEN category = 'Home & Kitchen' THEN '生活用品'
+  ELSE 'その他'
+END
 ```
 
-```
- product_id |                 memo                 | simple_case | searched_case
-------------+--------------------------------------+-------------+---------------
-          1 | 高音質でノイズキャンセリング機能付き | 入力あり    | 入力あり
-          2 | NULL                                 | 入力あり    | 未入力
-          6 | NULL                                 | 入力あり    | 未入力
-         21 | NULL                                 | 入力あり    | 未入力
-(4 rows)
-```
-
-`memo` が `NULL` の3件が、シンプルCASE式では**「入力あり」に分類されてしまっています。**
-エラーにならず、黙って間違った答えを返すのがこの罠のたちの悪いところです。
-
-**`NULL` を判定したいときは検索CASE式で `IS NULL` を書く。** これが唯一の書き方です。
+`=` に固定されているぶん短く書けますが、**`=` で表せない条件は書けません。**
+範囲（`price >= 3000`）、複数条件（`AND` / `OR`）、`NULL`（[[02_演算子]] のとおり `=` では判定できない）はいずれも検索CASE式で書きます。
 
 ---
 
@@ -689,8 +668,7 @@ ORDER BY product_id;
 ## 5. まとめ
 
 - **`CASE`式は文ではなく式。** 値を書ける場所には全部書ける（`SELECT` / `ORDER BY` / `WHERE` / `SET` / 関数の引数）
-- **検索CASE式（`CASE WHEN 条件`）を基本にする。** シンプルCASE式（`CASE 列 WHEN 値`）は `=` 比較に固定されている
-- **`NULL` を判定するなら検索CASE式で `IS NULL`。** シンプルCASE式の `WHEN NULL` は一致しない（→ §1-3）
+- **検索CASE式（`CASE WHEN 条件`）を基本にする。** シンプルCASE式（`CASE 列 WHEN 値`）は `列 = 値` の等価比較に固定した書き換えなので、範囲・複数条件・`NULL` は書けない（→ §1-2）
 - **`WHEN` は上から順。** 範囲で分けるときは狭い条件を先に書く（→ §2-1）
 - **`ELSE` を省くと `NULL`。** `UPDATE` の `SET` では、それがデータの消失になる（→ §3-4）
 - **`WHERE`句は `AND` / `OR` で書く。** `CASE` でも書けるが、読みにくくインデックスも使いにくい（→ §3-3）
