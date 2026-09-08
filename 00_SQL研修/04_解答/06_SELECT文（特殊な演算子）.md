@@ -1,7 +1,7 @@
 # 06章 演習 解答：SELECT文（特殊な演算子）
 
 **PostgreSQL 17 で実際に動かした結果を載せています。** 使用するテーブルは02章で作成した `products_mst` / `customers_mst` / `orders_trn` / `order_details_trn` です。
-問題 9〜12 は `UPDATE` / `DELETE` でデータを変更します。確認が終わったら準備の**リセットSQL**で初期状態に戻してください。
+問題 9〜12 は `UPDATE` / `DELETE` でデータを変更しますが、`BEGIN;` … `ROLLBACK;` で囲む形にしてあります。
 
 ---
 
@@ -11,42 +11,23 @@
 
 02章で作成した `products_mst` / `customers_mst` / `orders_trn` / `order_details_trn` をそのまま使います。この章で新しく作るテーブルはありません。
 
-### リセットSQL
+### リセット手順
 
-問題 9〜12 でデータを変更したあと、値が分からなくなったらこれを実行すれば初期状態に戻ります。
+**データを変えるのは問題 9〜12 だけです。** 他の問はすべて `SELECT` なので、データは変わりません。
+問題 9〜12 は `UPDATE` / `DELETE` を使いますが、`BEGIN;` … `ROLLBACK;` で囲む形にしてあるので、**そのとおりに実行すればリセットは要りません。**
 
-```sql
--- 問題 9: 在庫数を初期値に戻す
-UPDATE products_mst SET stock_quantity =   0 WHERE product_id IN (7, 17, 18, 23);
-UPDATE products_mst SET stock_quantity = 300 WHERE product_id IN (6, 16);
-UPDATE products_mst SET stock_quantity =  80 WHERE product_id = 3;
-UPDATE products_mst SET stock_quantity = 180 WHERE product_id = 10;
-UPDATE products_mst SET stock_quantity = 110 WHERE product_id = 12;
-UPDATE products_mst SET stock_quantity = 400 WHERE product_id = 15;
-UPDATE products_mst SET stock_quantity =  30 WHERE product_id = 20;
-UPDATE products_mst SET stock_quantity = 500 WHERE product_id = 21;
-UPDATE products_mst SET stock_quantity = 420 WHERE product_id = 22;
+`ROLLBACK` を忘れて確定してしまった場合は、**DBを作り直して入れ直します。**
 
--- 問題 10: 登録日を初期値に戻す
-UPDATE customers_mst SET created_date = '2023-02-20' WHERE customer_id = 2;
-UPDATE customers_mst SET created_date = '2023-05-05' WHERE customer_id = 5;
-UPDATE customers_mst SET created_date = '2023-07-25' WHERE customer_id = 7;
+1. `DROP DATABASE` → `CREATE DATABASE`
+2. DDL を実行する
+3. テストデータの `INSERT` を実行する
 
--- 問題 11: 価格を初期値に戻す
-UPDATE products_mst SET price = 1800.00 WHERE product_id = 6;
-UPDATE products_mst SET price = 1200.00 WHERE product_id IN (15, 20);
-
--- 問題 12 の「正しい削除手順」まで実行した場合のみ（親 → 子 の順で戻す）
-INSERT INTO products_mst (product_id, category, product_name, price, stock_quantity, memo, deleted_at)
-VALUES (8, 'Electronics', 'USB 充電器', 1500.00, 500, 'PD 対応、急速充電可能', NULL);
-INSERT INTO order_details_trn VALUES (3, 8, 3, NULL), (17, 8, 2, NULL);
-```
-
-**検証SQL** ―― 商品23件・注文明細28件・Toys の3件がすべて在庫0 なら初期状態です。
+戻ったかどうかは次のSQLで確認します。**23 / 28 / Toys の3件がすべて在庫0** なら初期状態です。
 
 ```sql
-SELECT COUNT(*) AS products FROM products_mst;
-SELECT COUNT(*) AS order_details FROM order_details_trn;
+SELECT (SELECT COUNT(*) FROM products_mst)      AS products,
+       (SELECT COUNT(*) FROM order_details_trn) AS order_details;
+
 SELECT product_id, product_name, stock_quantity
 FROM products_mst
 WHERE category = 'Toys'
@@ -230,27 +211,17 @@ ORDER BY created_date ASC;
 ### 問題:
 `products_mst` テーブルで、カテゴリが **'Electronics' と 'Books' 以外** の商品の在庫数(`stock_quantity`)を、現在の値から **10個 増加** させてください。
 
-> **注意**: このSQLはデータを変更します。実行後は解答に記載の復旧SQLを実行して、在庫数を元の状態に戻してください（ここで変更される在庫数は後続の章の問題でも使用します）。
+> **注意**: このSQLはデータを変更します。**`BEGIN;` … `ROLLBACK;` で囲んで実行してください**（ここで変更される在庫数は後続の章の問題でも使用します）。
 
 ### 解答:
 ```sql
+BEGIN;
+
 UPDATE products_mst
 SET stock_quantity = stock_quantity + 10
 WHERE category NOT IN ('Electronics', 'Books');
-```
 
-**復旧SQL**
-```sql
--- 在庫数を元に戻す（更新対象は同じ13件）
-UPDATE products_mst
-SET stock_quantity = stock_quantity - 10
-WHERE category NOT IN ('Electronics', 'Books');
-
--- 検証: Toys の3件が在庫0に戻っていること（3件とも 0 ならOK）
-SELECT product_id, product_name, stock_quantity
-FROM products_mst
-WHERE category = 'Toys'
-ORDER BY product_id;
+ROLLBACK;   -- 加算した在庫を確定させずに捨てる
 ```
 
 ### 期待結果:
@@ -258,7 +229,7 @@ ORDER BY product_id;
 
 ### 解説:
 `NOT IN ('Electronics', 'Books')` は「リストのどれとも一致しない」という条件で、`category <> 'Electronics' AND category <> 'Books'` と同じ意味です。`UPDATE` は `WHERE` を書き忘れると全行が更新されるため、先に同じ `WHERE` で `SELECT` して対象件数を確かめてから実行するのが実務の作法です。
-なおこの `UPDATE` は Toys の3商品（`product_id` = 17・18・23）の在庫数を **0 → 10** に変えてしまいます。この3件が在庫0であることは [[00_SQL研修/02_問題/07_group byと集計関数|07章]] 問題 15(2)「全商品が欠品しているカテゴリ」の前提なので、確認が終わったら必ず復旧SQLを実行してください。
+なおこの `UPDATE` は Toys の3商品（`product_id` = 17・18・23）の在庫数を **0 → 10** に変えてしまいます。この3件が在庫0であることは [[00_SQL研修/02_問題/07_group byと集計関数|07章]] 問題 15(2)「全商品が欠品しているカテゴリ」の前提なので、`ROLLBACK` を忘れないでください。
 
 ---
 
@@ -268,17 +239,21 @@ ORDER BY product_id;
 ### 問題:
 `customers_mst` テーブルで、**customer_id が 2, 5, 7** の顧客の登録日(`created_date`)を、**今日の最新日付** に更新してください。
 
-> **注意**: このSQLはデータを変更します。実行後は準備の**リセットSQL**で登録日を元の状態に戻してください。
+> **注意**: このSQLはデータを変更します。**`BEGIN;` … `ROLLBACK;` で囲んで実行してください。**
 
 ### 解答:
 ```sql
+BEGIN;
+
 UPDATE customers_mst
 SET created_date = CURRENT_DATE
 WHERE customer_id IN (2, 5, 7);
+
+ROLLBACK;   -- 書き換えた登録日を確定させずに捨てる
 ```
 
 ### 解説:
-`CURRENT_DATE` は実行した日の日付を返すため、実行するたびに入る値が変わります。この更新は `customer_id` = 5・7 の登録日も書き換えるので、戻さないまま進めると問題 4・問題 8 の結果が変わってしまいます。確認が終わったらリセットSQLで戻してください。
+`CURRENT_DATE` は実行した日の日付を返すため、実行するたびに入る値が変わります。この更新は `customer_id` = 5・7 の登録日も書き換えるので、戻さないまま進めると問題 4・問題 8 の結果が変わってしまいます。`ROLLBACK` を忘れないでください。
 
 ---
 
@@ -288,14 +263,18 @@ WHERE customer_id IN (2, 5, 7);
 ### 問題:
 `products_mst` テーブルで、商品名に **「コーヒー」または「はちみつ」** という文字列が含まれる商品の価格を、一律 **1,500.00 円** に更新してください。
 
-> **注意**: このSQLはデータを変更します。実行後は準備の**リセットSQL**で価格を元の状態に戻してください。
+> **注意**: このSQLはデータを変更します。**`BEGIN;` … `ROLLBACK;` で囲んで実行してください。**
 
 ### 解答:
 ```sql
+BEGIN;
+
 UPDATE products_mst
 SET price = 1500.00
 WHERE product_name LIKE '%コーヒー%'
    OR product_name LIKE '%はちみつ%';
+
+ROLLBACK;   -- 書き換えた価格を確定させずに捨てる
 ```
 
 ### 期待結果:
@@ -315,7 +294,7 @@ WHERE product_name LIKE '%コーヒー%'
 ※なお、外部キー制約がある場合、本来は子テーブルから削除する必要がありますが、ここでは `WHERE` 句の書き方の学習として、商品テーブルに対する削除文のみ記述してください。
 書けたら **実際に実行して、どうなるかを確認してください。**
 
-> **注意**: このSQLはデータを変更します。実行結果と、データを元に戻すための復旧SQLは解答に記載しています。
+> **注意**: このSQLはデータを変更します。**`BEGIN;` … `ROLLBACK;` で囲んで実行してください。** 実行結果は解答に記載しています。
 
 ### 解答:
 ```sql
@@ -328,8 +307,10 @@ WHERE product_name LIKE '%充電器%';
 -- DETAIL:  Key (product_id)=(8) is still referenced from table "order_details_trn".
 ```
 
-**正しい削除手順** ―― 実行すると注文明細が2行消えます。試した場合は必ず下の復旧SQLで戻してください。
+**正しい削除手順** ―― 実行すると注文明細が2行消えるので、`BEGIN;` … `ROLLBACK;` で囲みます。
 ```sql
+BEGIN;
+
 -- 1. 先に子テーブル（注文明細）から該当商品の行を削除する
 DELETE FROM order_details_trn
 WHERE product_id = 8;
@@ -337,20 +318,8 @@ WHERE product_id = 8;
 -- 2. そのうえで親テーブル（商品マスタ）から削除する
 DELETE FROM products_mst
 WHERE product_name LIKE '%充電器%';
-```
 
-**復旧SQL**
-```sql
--- 1. 親テーブルを先に戻す（子より先でないと外部キー違反になる）
-INSERT INTO products_mst (product_id, category, product_name, price, stock_quantity, memo, deleted_at)
-VALUES (8, 'Electronics', 'USB 充電器', 1500.00, 500, 'PD 対応、急速充電可能', NULL);
-
--- 2. 注文明細を戻す
-INSERT INTO order_details_trn VALUES (3, 8, 3, NULL), (17, 8, 2, NULL);
-
--- 検証: 明細が28行に戻り、product_id=8 が1件存在すること
-SELECT COUNT(*) AS order_details_rows FROM order_details_trn;
-SELECT * FROM products_mst WHERE product_id = 8;
+ROLLBACK;   -- 削除を確定させずに捨てる（商品23件・明細28件に戻る）
 ```
 
 ### 期待結果:
