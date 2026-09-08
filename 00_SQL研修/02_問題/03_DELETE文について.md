@@ -10,7 +10,7 @@
 
 ### 使用するテーブル
 
-02章で作成した `customers_mst` / `products_mst` / `orders_trn` / `order_details_trn` をそのまま使います。まだ作っていない場合は、配布した DDL とテストデータで作成してください。
+02章で作成した `customers_mst` / `products_mst` / `orders_trn` / `order_details_trn` をそのまま使います。まだ作っていない場合は、02章の DDL スクリプト（`02_DDL（前半用）`）を実行して作成してください。
 
 初期状態の件数は **顧客 9 件 / 商品 23 件 / 注文 18 件 / 注文明細 28 件** です。
 
@@ -26,9 +26,9 @@
 
 **1問解くごとに、次の手順でデータベースを作り直してください。**
 
-1. データベースを削除して作り直す（pgAdmin で削除 → 新規作成、または `DROP DATABASE` → `CREATE DATABASE`）
-2. 配布した **DDL** を実行してテーブルを作る
-3. 配布した **テストデータ** の `INSERT` を実行する
+1. `DROP DATABASE` → `CREATE DATABASE`（pgAdmin なら削除 → 新規作成）
+2. DDL を実行する
+3. テストデータの `INSERT` を実行する
 
 初期状態に戻ったかどうかは、次のSQLで確認できます。**9 / 23 / 18 / 28** になっていればOKです。
 

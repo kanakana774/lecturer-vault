@@ -2,6 +2,8 @@
 
 **PostgreSQL 17 で実際に動かした結果を載せています。** この章で作る4つのテーブル（`customers_mst` / `products_mst` / `orders_trn` / `order_details_trn`）を、02章以降でそのまま使います。
 
+この章は `CREATE TABLE` そのものが課題です。リセットしたいときは `DROP TABLE` で4つを落として（子の `order_details_trn` から先に）、もう一度作ってください。
+
 ---
 
 ## 問題 1: 4つのテーブルを設計して作成する

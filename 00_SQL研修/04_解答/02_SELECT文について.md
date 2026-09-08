@@ -1,6 +1,6 @@
 # 02章 演習 解答：SELECT文
 
-**PostgreSQL 17 で実際に動かした結果を載せています。** 使用するテーブルは `customers_mst` / `products_mst` です。
+**PostgreSQL 17 で実際に動かした結果を載せています。** 使用するテーブルは `customers_mst` / `products_mst` です。この章は `SELECT` だけでデータを変更しないので、リセットは不要です。
 
 ---
 

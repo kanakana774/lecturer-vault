@@ -1,6 +1,6 @@
 # 02章 演習：SELECT文
 
-使用するテーブルは `customers_mst` / `products_mst` です。
+使用するテーブルは `customers_mst` / `products_mst` です。この章は `SELECT` だけでデータを変更しないので、リセットは不要です。
 
 ---
 
