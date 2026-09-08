@@ -1,6 +1,6 @@
 # 02章 演習 解答：INSERT文
 
-**掲載しているSQLは PostgreSQL 17 で実行を確認しています。** この章は**データが増える**演習なので、やり直すときは下の「準備」のリセットSQLを使ってください。
+**掲載しているSQLは PostgreSQL 17 で実行を確認しています。** この章は**データが増える**演習なので、やり直すときは下の「準備」のリセット手順を使ってください。
 
 ---
 
@@ -9,25 +9,24 @@
 ### 使用するテーブル
 
 02章のDDLで作成した `customers_mst` / `products_mst` / `orders_trn` / `order_details_trn` をそのまま使います。新しく作るものはありません。
+まだ作っていない場合は、02章の DDL スクリプト（`02_DDL（前半用）`）を実行して作成してください。
 
-### リセットSQL
+### リセット手順
 
-この章は**データが増える**演習です。やり直したいとき・後続の章（07章など）の集計結果が教材と合わなくなったときは、これを実行すれば初期状態に戻ります。
+この章は**データが増える**演習です。やり直したいとき・後続の章（07章など）の集計結果が教材と合わなくなったときは、**DBを作り直して入れ直します。**
+
+1. `DROP DATABASE` → `CREATE DATABASE`
+2. DDL を実行する
+3. テストデータの `INSERT` を実行する
+
+戻ったかどうかは次のSQLで確認します。**9 / 23 / 18 / 28** になっていればOKです。
 
 ```sql
--- 演習で追加した行を削除する
-DELETE FROM order_details_trn WHERE order_id > 18 OR (order_id = 1 AND product_id = 15);
-DELETE FROM orders_trn        WHERE order_id    > 18;
-DELETE FROM products_mst      WHERE product_id  > 23;
-DELETE FROM customers_mst     WHERE customer_id > 9;
-
--- 自動採番（SERIAL）のカウンタも初期データの最大値へ戻す
-SELECT setval('customers_mst_customer_id_seq', 9);
-SELECT setval('products_mst_product_id_seq',  23);
-SELECT setval('orders_trn_order_id_seq',      18);
+SELECT (SELECT COUNT(*) FROM customers_mst)     AS customers,
+       (SELECT COUNT(*) FROM products_mst)      AS products,
+       (SELECT COUNT(*) FROM orders_trn)        AS orders,
+       (SELECT COUNT(*) FROM order_details_trn) AS details;
 ```
-
-> 削除は**子テーブルから先**に行います（`order_details_trn` → `orders_trn`）。逆順だと外部キー制約でエラーになります。
 
 ---
 
@@ -92,7 +91,7 @@ VALUES (1, 15, 3);
 ```
 
 ### 解説:
-これにより、既存の注文（order_id=1）に新しい商品行が追加されます。もし `order_id=1` かつ `product_id=15` のデータが既に存在していた場合は、主キー制約違反（重複エラー）となります。2回実行すると `duplicate key value violates unique constraint` が出るので、試すときはリセットSQLで戻してください。
+これにより、既存の注文（order_id=1）に新しい商品行が追加されます。もし `order_id=1` かつ `product_id=15` のデータが既に存在していた場合は、主キー制約違反（重複エラー）となります。2回実行すると `duplicate key value violates unique constraint` が出るので、試すときは準備の**リセット手順**で戻してください。
 
 ---
 
