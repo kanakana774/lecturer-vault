@@ -19,15 +19,6 @@
 2. DDL を実行する
 3. テストデータの `INSERT` を実行する
 
-戻ったかどうかは次のSQLで確認します。**9 / 23 / 18 / 28** になっていればOKです。
-
-```sql
-SELECT (SELECT COUNT(*) FROM customers_mst)     AS customers,
-       (SELECT COUNT(*) FROM products_mst)      AS products,
-       (SELECT COUNT(*) FROM orders_trn)        AS orders,
-       (SELECT COUNT(*) FROM order_details_trn) AS details;
-```
-
 ---
 
 ## 問題 1: 全ての情報を指定して新しい顧客を登録する

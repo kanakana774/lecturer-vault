@@ -30,15 +30,6 @@
 2. DDL を実行する
 3. テストデータの `INSERT` を実行する
 
-初期状態に戻ったかどうかは、次のSQLで確認できます。**9 / 23 / 18 / 28** になっていればOKです。
-
-```sql
-SELECT (SELECT COUNT(*) FROM customers_mst)     AS customers,
-       (SELECT COUNT(*) FROM products_mst)      AS products,
-       (SELECT COUNT(*) FROM orders_trn)        AS orders,
-       (SELECT COUNT(*) FROM order_details_trn) AS details;
-```
-
 ---
 
 ## 問題 1: 特定の商品を削除する

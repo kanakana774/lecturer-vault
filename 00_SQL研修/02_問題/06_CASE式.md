@@ -20,20 +20,6 @@
 2. DDL を実行する
 3. テストデータの `INSERT` を実行する
 
-戻ったかどうかは次のSQLで確認します。`memo` が未入力の商品が 7 件（`product_id` = 2, 6, 11, 18, 20, 21, 22）になっていればOKです。
-
-```sql
-SELECT
-    product_id,
-    product_name
-FROM
-    products_mst
-WHERE
-    memo IS NULL
-ORDER BY
-    product_id;
-```
-
 ---
 
 ## 問題 1: 商品の価格帯を分類する（検索CASE式）

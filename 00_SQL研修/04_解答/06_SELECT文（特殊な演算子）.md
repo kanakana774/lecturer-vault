@@ -22,18 +22,6 @@
 2. DDL を実行する
 3. テストデータの `INSERT` を実行する
 
-戻ったかどうかは次のSQLで確認します。**23 / 28 / Toys の3件がすべて在庫0** なら初期状態です。
-
-```sql
-SELECT (SELECT COUNT(*) FROM products_mst)      AS products,
-       (SELECT COUNT(*) FROM order_details_trn) AS order_details;
-
-SELECT product_id, product_name, stock_quantity
-FROM products_mst
-WHERE category = 'Toys'
-ORDER BY product_id;
-```
-
 ---
 
 ## 問題 1: 特定の範囲内の価格を持つ商品を検索する

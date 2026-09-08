@@ -23,16 +23,6 @@
 
 **問題10（全件の価格を0にする）を実行したあとと、追加課題に入る前には必ずやり直してください。**
 
-戻ったかどうかは次のSQLで確認します。**23 / 114910.00 / 4080 / 1** になっていればOKです。
-
-```sql
-SELECT COUNT(*) AS products,
-       SUM(price) AS total_price,
-       SUM(stock_quantity) AS total_stock,
-       COUNT(deleted_at) AS discontinued
-FROM products_mst;
-```
-
 ---
 
 ## 問題 1: 特定商品の価格を変更する

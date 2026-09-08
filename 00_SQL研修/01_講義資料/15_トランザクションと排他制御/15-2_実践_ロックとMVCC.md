@@ -28,7 +28,6 @@ ALTER TABLE inventory ADD COLUMN version INT NOT NULL DEFAULT 1;
 3. 同じページの「テストデータ」を上から順に実行する
 
 `version` 列は `TRUNCATE` では消えないので、入れ直せば全行 `1` に戻ります。
-戻ったかどうかは `products` の 1・2 が **1200.00 / 800.00**、`inventory` の `(1, 1)` が **50 / 1** で確認します。
 
 ---
 
