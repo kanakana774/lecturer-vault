@@ -2,7 +2,7 @@
 
 使用するテーブルは02章で作成した `products_mst` / `customers_mst` / `orders_trn` / `order_details_trn` です。
 
-この章の問題は**データを書き換えます。** 値が分からなくなったら、下の「準備」にあるリセットSQLで初期状態に戻してください。
+この章の問題は**データを書き換えます。** 値が分からなくなったら、下の「準備」にあるリセット手順で初期状態に戻してください。
 
 ---
 
@@ -13,83 +13,24 @@
 **02章で作成した `products_mst` / `customers_mst` / `orders_trn` / `order_details_trn` をそのまま使います。** 新しく作るものはありません。
 まだ作っていない場合は、02章の DDL スクリプト（`02_DDL（前半用）`）を実行して作成してください。
 
-### リセットSQL
+### リセット手順
 
-値が分からなくなったら、これを実行すれば初期状態に戻ります。**問題10（全件の価格を0にする）を実行したあとと、追加課題に入る前には必ず実行してください。**
+この章の問題は**データを書き換えます。** 値が分からなくなったら、**DBを作り直して入れ直します。**
 
-```sql
--- 商品マスタ（price / stock_quantity / memo / deleted_at）を初期状態に戻す
-UPDATE products_mst SET price = 12800.00, stock_quantity = 150, memo = '高音質でノイズキャンセリング機能付き', deleted_at = NULL WHERE product_id = 1;
-UPDATE products_mst SET price =  2500.00, stock_quantity = 200, memo = NULL,                             deleted_at = NULL WHERE product_id = 2;
-UPDATE products_mst SET price =  4500.00, stock_quantity =  80, memo = '1L 容量、自動電源オフ機能',      deleted_at = NULL WHERE product_id = 3;
-UPDATE products_mst SET price = 29800.00, stock_quantity = 100, memo = '心拍数モニタリング、GPS 搭載',   deleted_at = NULL WHERE product_id = 4;
-UPDATE products_mst SET price =  3200.00, stock_quantity = 120, memo = '初心者向けの解説書',             deleted_at = NULL WHERE product_id = 5;
-UPDATE products_mst SET price =  1800.00, stock_quantity = 300, memo = NULL,                             deleted_at = NULL WHERE product_id = 6;
-UPDATE products_mst SET price =  9800.00, stock_quantity =   0, memo = 'スムージー作りに最適',           deleted_at = NULL WHERE product_id = 7;
-UPDATE products_mst SET price =  1500.00, stock_quantity = 500, memo = 'PD 対応、急速充電可能',          deleted_at = NULL WHERE product_id = 8;
-UPDATE products_mst SET price =  3800.00, stock_quantity =  90, memo = '統計学の基本から学習',           deleted_at = NULL WHERE product_id = 9;
-UPDATE products_mst SET price =  2200.00, stock_quantity = 180, memo = 'ギフトにも最適',                 deleted_at = NULL WHERE product_id = 10;
-UPDATE products_mst SET price =  7800.00, stock_quantity =  70, memo = NULL, deleted_at = '2023-09-20 18:00:00+0900' WHERE product_id = 11;
-UPDATE products_mst SET price =  5500.00, stock_quantity = 110, memo = '焦げ付きにくい加工',             deleted_at = NULL WHERE product_id = 12;
-UPDATE products_mst SET price =  1800.00, stock_quantity = 250, memo = '成功へのヒント',                 deleted_at = NULL WHERE product_id = 13;
-UPDATE products_mst SET price =  3980.00, stock_quantity = 220, memo = '大容量、軽量設計',               deleted_at = NULL WHERE product_id = 14;
-UPDATE products_mst SET price =  1200.00, stock_quantity = 400, memo = '100%純粋なはちみつ',             deleted_at = NULL WHERE product_id = 15;
-UPDATE products_mst SET price =  2800.00, stock_quantity = 300, memo = '5色ボールペン+シャープペンシル', deleted_at = NULL WHERE product_id = 16;
-UPDATE products_mst SET price =  3300.00, stock_quantity =   0, memo = '知育玩具・対象年齢3歳から',      deleted_at = NULL WHERE product_id = 17;
-UPDATE products_mst SET price =  8800.00, stock_quantity =   0, memo = NULL,                             deleted_at = NULL WHERE product_id = 18;
-UPDATE products_mst SET price =  2500.00, stock_quantity =  60, memo = '改訂版として誤って二重登録',     deleted_at = NULL WHERE product_id = 19;
-UPDATE products_mst SET price =  1200.00, stock_quantity =  30, memo = NULL,                             deleted_at = NULL WHERE product_id = 20;
-UPDATE products_mst SET price =   750.00, stock_quantity = 500, memo = NULL,                             deleted_at = NULL WHERE product_id = 21;
-UPDATE products_mst SET price =   980.00, stock_quantity = 420, memo = NULL,                             deleted_at = NULL WHERE product_id = 22;
-UPDATE products_mst SET price =  2400.00, stock_quantity =   0, memo = 'ギフト包装対応',                 deleted_at = NULL WHERE product_id = 23;
+1. `DROP DATABASE` → `CREATE DATABASE`
+2. DDL を実行する
+3. テストデータの `INSERT` を実行する
 
--- 顧客マスタのメールアドレスを初期状態に戻す（問題5の取り消し）
-UPDATE customers_mst
-SET email = REPLACE(email, '@newcompany.com', '@example.com');
+**問題10（全件の価格を0にする）を実行したあとと、追加課題に入る前には必ずやり直してください。**
 
--- 注文日を初期状態に戻す（問題6の取り消し）
-UPDATE orders_trn
-SET order_date = '2024-08-21'
-WHERE order_id = 17;
-```
-
-### リセットの確認
-
-初期状態に戻ったかどうかは、次の3つで確認できます。
+戻ったかどうかは次のSQLで確認します。**23 / 114910.00 / 4080 / 1** になっていればOKです。
 
 ```sql
--- 商品は23件・価格合計 114,910.00・在庫合計 4,080・販売終了は1件（product_id=11）
 SELECT COUNT(*) AS products,
        SUM(price) AS total_price,
        SUM(stock_quantity) AS total_stock,
        COUNT(deleted_at) AS discontinued
 FROM products_mst;
-
--- @newcompany.com のメールアドレスが0件であること
-SELECT COUNT(*) AS newcompany_mails
-FROM customers_mst
-WHERE email LIKE '%@newcompany.com';
-
--- customer_id=1 の最新注文日が 2024-08-21 であること
-SELECT MAX(order_date) AS latest_order_date
-FROM orders_trn
-WHERE customer_id = 1;
-```
-
-実行結果は次のようになります。
-
-```
- products | total_price | total_stock | discontinued
-----------+-------------+-------------+--------------
-       23 |   114910.00 |        4080 |            1
-
- newcompany_mails
-------------------
-                0
-
- latest_order_date
--------------------
- 2024-08-21
 ```
 
 ---
@@ -241,8 +182,8 @@ WHERE customer_id = 1;
 
 **問題 10 まで**が必須です。ここから先は、早く終わった人・もっと解きたい人向けです。
 
-> **注意**: 追加課題を始める前に、**必ず「準備」のリセットSQLを実行して初期状態に戻してください**（問題10で全商品の価格が0になっているため、そのままでは以下の設問の更新件数が合いません）。
-> また、追加課題の各問もデータを変更します。各問の末尾にある復旧SQLを必ず実行してから次に進んでください。
+> **注意**: 追加課題を始める前に、**必ず「準備」のリセット手順でDBを作り直してください**（問題10で全商品の価格が0になっているため、そのままでは以下の設問の更新件数が合いません）。
+> 追加課題の各問もデータを変更しますが、`BEGIN;` … `ROLLBACK;` で囲む形にしてあるので、**そのとおりに実行すればリセットは要りません。**
 
 ---
 
@@ -251,7 +192,7 @@ WHERE customer_id = 1;
 
 ### 問題:
 `products_mst` テーブルに対して在庫補充を行います。
-**SQLを実行するたびに、psql が返す `UPDATE 〇` の件数を必ず記録してください。**
+**SQLを実行するたびに、返ってくる `UPDATE 〇` の件数を必ず記録してください。**
 
 **(1)** `Toys` カテゴリの **販売中の商品**（`deleted_at` が NULL の商品）の在庫数を、それぞれ **30 個ずつ増やして** ください。何件更新されましたか。
 
@@ -260,7 +201,7 @@ WHERE customer_id = 1;
 
 **(3)** (2) のSQLのカテゴリ名を `'electronics'`（すべて小文字）に書き換えて実行してください。何件更新され、エラーは出ますか。
 
-**最後に、必ず復旧SQLを実行してデータを元に戻してください。**
+**この問のSQLは `BEGIN;` … `ROLLBACK;` で囲んで実行してください。** 確定させると、この章より後の集計結果が教材と合わなくなります。
 
 > **ヒント**: 「30個増やす」は現在の在庫数を参照する相対的な更新です（問題3と同じ考え方）。
 
@@ -283,7 +224,7 @@ WHERE customer_id = 1;
 
 **(3)** 更新後、販売終了商品が 0 件になったこと、および出荷可能な商品（`deleted_at IS NULL AND stock_quantity > 0`）が 18 件から 19 件に増えたことを `SELECT` で確認してください。
 
-**最後に、必ず復旧SQLを実行してデータを元に戻してください。**
+**この問のSQLは `BEGIN;` … `ROLLBACK;` で囲んで実行してください。** 確定させると、この章より後の集計結果が教材と合わなくなります。
 
 > **ヒント**: 列を「未設定」の状態に戻すには `SET 列名 = NULL` と書きます（`'NULL'` という文字列ではありません）。
 
@@ -307,7 +248,7 @@ WHERE customer_id = 1;
 
 **(3)** (1) と (2) は、それぞれ何を `WHERE` 条件にするべきだったでしょうか。正しい `UPDATE` を書いてください。
 
-**最後に、必ず復旧SQLを実行してデータを元に戻してください。**
+**この問のSQLは `BEGIN;` … `ROLLBACK;` で囲んで実行してください。** 確定させると、この章より後の集計結果が教材と合わなくなります。
 
 > **ヒント**: `product_name` は主キーではありません。同じ値の行が複数あってもかまわないし、見た目が似ていても文字列として別の値になっていることもあります。
 
