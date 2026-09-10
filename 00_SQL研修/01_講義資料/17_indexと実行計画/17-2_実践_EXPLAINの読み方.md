@@ -53,56 +53,6 @@ CREATE INDEX idx_customers_email_lower ON customers (LOWER(email));
 
 だから**まず「苗字」でソートされ、同じ苗字の中で「名前」でソートされている**形になります。複合キーは、インデックスを2本持っているのとは違います。**名前だけを指定しても、その名前は木のあちこちに散っている**ので辿る手がかりになりません。これが「`WHERE B = ?` だけでは効かない」の中身です。
 
-### 1-3. インデックス作成はタダではない：`CONCURRENTLY`
-
-**通常の `CREATE INDEX` は対象テーブルをロックし、作成が終わるまで書き込み（`INSERT` / `UPDATE` / `DELETE`）を止めます。** 練習用の小さなテーブルなら一瞬ですが、稼働中のサービスで何気なく実行すると、**その間ずっと更新処理が詰まります。**
-
-```sql
-CREATE INDEX CONCURRENTLY idx_customers_city ON customers (city);
-```
-
-ただしロックを取らない代わりに、テーブルを**2回スキャン**するので通常より時間がかかり、**トランザクションブロックの中では実行できません**。
-
-> **ここで覚えて帰るのは「インデックス作成はタダではない。稼働中に作るなら `CONCURRENTLY`」の一点で十分です。**
-
-> [!example]- 本番で実際に使うときの作法
-> `CONCURRENTLY` は**作成・削除・再作成**の3つに付けられます。
->
-> ```sql
-> CREATE INDEX CONCURRENTLY idx_orders_status ON orders (status);
-> DROP INDEX CONCURRENTLY idx_orders_status;
-> REINDEX INDEX CONCURRENTLY idx_orders_status;   -- PostgreSQL 12 以降
-> ```
->
-> **① 単独で実行すること**（`VACUUM` と同じ制約）。他のSQLとまとめて流すとこうなります。
->
-> ```
-> ERROR:  CREATE INDEX CONCURRENTLY cannot run inside a transaction block
-> ```
->
-> **② 他のトランザクションが終わるのを待つ。** `CONCURRENTLY` は**実行開始時点で走っている全てのトランザクションの終了を待ちます**。「そのテーブルを触っているもの」だけでなく、**無関係なテーブルを触っているものも含めて**です（別テーブルを更新中のトランザクションを1つ開いたまま実行すると、それが `COMMIT` するまで一切進まないことを PostgreSQL 17.5 で確認）。つまり**長時間トランザクションを放置しているシステムでは、いつまでも終わりません。**
->
-> ```sql
-> -- 5分以上続いているトランザクションを探す
-> SELECT pid, now() - xact_start AS 経過時間, state, query
-> FROM pg_stat_activity
-> WHERE xact_start < now() - interval '5 minutes'
-> ORDER BY xact_start;
-> ```
->
-> **③ 失敗すると「無効なインデックス」が残る。** 作りかけのインデックスは自動では消えず、`INVALID` の印が付いて残ります。**この状態のインデックスはプランナに使われません**（検索を速くしないのにディスクだけ占有する）。
->
-> ```sql
-> -- 無効なインデックスが残っていないか確認
-> SELECT indexrelid::regclass AS index名, indrelid::regclass AS テーブル名
-> FROM pg_index WHERE NOT indisvalid;
->
-> REINDEX INDEX CONCURRENTLY idx_xxx;   -- 原因を取り除いてから作り直す
-> DROP INDEX CONCURRENTLY idx_xxx;      -- もしくは消す
-> ```
->
-> **`CONCURRENTLY` を使ったら、成功したかどうかを必ず上のクエリで確認する**——これを手順に組み込むのが実務の作法です。
-
 ---
 
 ## 2. EXPLAIN の基本

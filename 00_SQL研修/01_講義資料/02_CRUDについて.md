@@ -332,20 +332,11 @@ RETURNING product_name, stock_quantity;
  Mouse        |              0
 ```
 
-⚠️ **`= 0` は在庫が `NULL` の行を拾いません。** `NULL` は「値が不明」なので、`= 0` の判定が真になりません。「在庫が無い商品」を消したいなら `WHERE stock_quantity = 0 OR stock_quantity IS NULL` と書きます（実測）。
-
-```
- product_name | stock_quantity
---------------+----------------
- Laptop       |             50
- Keyboard     |             12
- Webcam       |         (NULL)   ← 消えずに残る
-```
-
-`NULL` の扱いは [[01_データ型]] の NULL の節と [[02_演算子]] を参照してください。
-
 なお、**全ての行を消してテーブルだけ残したい**場合は `TRUNCATE` の方が高速です（→ [[01_RDBMSとDDL]]）。
 
+%%
+論理削除の項目を追加する
+%%
 ## UPDATE / DELETE の事故を防ぐ
 
 `WHERE` を省略した `UPDATE` / `DELETE` は**エラーになりません。テーブルの全ての行が対象になります。**

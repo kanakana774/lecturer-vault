@@ -232,14 +232,6 @@ CONTEXT:  PL/pgSQL function inline_code_block line 6 at SQL statement
 
 **`column reference "customer_id" is ambiguous`（列の参照 `customer_id` が曖昧です）。** `DETAIL` が理由をそのまま書いています——**「PL/pgSQL の変数」と「テーブルの列」のどちらを指しているか決められない**。
 
-`WHERE customer_id = customer_id` と書いたとき、PostgreSQL には次の 3 通りの解釈があり得ます。
-
-1. 列 `=` 変数（書いた人が意図したもの）
-2. 変数 `=` 変数（常に真になる）
-3. 列 `=` 列（常に真になる）
-
-決められないので、PostgreSQL は**推測せずにエラーで止めます**。黙って 2 や 3 の意味で動かれるより、はるかに安全な設計です。
-
 ### 5-2. だから接頭辞を付ける
 
 この衝突は、**変数名が列名と決して一致しないようにする**だけで完全に防げます。この研修では次の規約で統一します。
