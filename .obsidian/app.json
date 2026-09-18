@@ -1,0 +1,24 @@
+{
+  "newFileLocation": "root",
+  "showUnsupportedFiles": true,
+  "readableLineLength": false,
+  "showLineNumber": false,
+  "showIndentGuide": true,
+  "propertiesInDocument": "visible",
+  "foldHeading": true,
+  "rightToLeft": false,
+  "showInlineTitle": false,
+  "defaultViewMode": "preview",
+  "focusNewTab": true,
+  "alwaysUpdateLinks": true,
+  "attachmentFolderPath": "./",
+  "pdfExportSettings": {
+    "includeName": true,
+    "pageSize": "A4",
+    "landscape": false,
+    "margin": "0",
+    "downscalePercent": 70
+  },
+  "settingsPopoutWindow": true,
+  "newLinkFormat": "shortest"
+}
