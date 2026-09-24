@@ -24,9 +24,15 @@
 ## AI研修用の教材（**2か月目リポジトリへは反映しない**）
 
 **2か月目（`aevic-education/todo-app-api` / `-docs`）への push は取らない。** 研修生向け資料を削除するため、2か月目研修が壊れる。
-**置き場は「独立リポジトリの新設」か「最悪手で手渡し配布」の二択（未決）。** どちらでも作業は変わらないので、決まるまでローカルで進める。
+**置き場は決着した** → **`aevic-education/ai-training`**（2026-09-24 作成。1本を期をまたいで使い続ける。→ `03_研修環境とガードレール.md` §2）。
 
-**作業場**: `Desktop/ai-sim/` の使い捨てクローン。ブランチ **`ai-training-fixes`**。
+**作業場**: `Desktop/ai-training`（`ai-training` のクローン。ブランチ `develop`）。
+
+> **⚠ 過去の作業場は Desktop から移動した**（2026-09-24）。
+> `Downloads/todo-案件`（**試走1周目の完成実装＝模範解答**）／`Documents/配布見本`／`Documents/AI研修_試走_講師用`。
+> **`Desktop/ai-sim` は現存しない。**下の commit 3本はそのクローンのもので、**実物は残っていない**
+> （同じ作業の結果は `Downloads/todo-案件/todo-app-api-docs` の `13b85fc` に残っており、そこから `ai-training` に取り込んだ）。
+> **試走では `Desktop/ai-training` を作業ディレクトリにして起動し、上の3つを読ませない。**
 
 | リポジトリ | commit | 内容 |
 |---|---|---|
