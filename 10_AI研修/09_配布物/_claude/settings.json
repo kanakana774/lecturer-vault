@@ -1,0 +1,53 @@
+{
+  "permissions": {
+    "deny": [
+      "Read(./**/.env)",
+      "Read(./**/*.pem)"
+    ],
+    "ask": [
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(gh pr create:*)",
+      "Bash(gh pr comment:*)",
+      "Bash(gh pr review:*)",
+      "Bash(rm:*)",
+      "Bash(psql:*)",
+      "Edit(./pom.xml)",
+      "Edit(./todo_checks.xml)",
+      "Edit(./CLAUDE.md)",
+      "Edit(./.claude/**)",
+      "Write(./.claude/**)",
+      "WebFetch",
+      "WebSearch"
+    ],
+    "allow": [
+      "Read(./**)",
+      "Edit(./src/**)",
+      "Write(./src/**)",
+      "Edit(./docs/**)",
+      "Write(./docs/**)",
+      "Bash(mvn:*)",
+      "Bash(git status)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(git switch:*)",
+      "Bash(git branch:*)",
+      "Bash(gh pr view:*)",
+      "Bash(gh pr diff:*)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File \"$CLAUDE_PROJECT_DIR/.claude/hooks/block-remote-read.ps1\""
+          }
+        ]
+      }
+    ]
+  }
+}
