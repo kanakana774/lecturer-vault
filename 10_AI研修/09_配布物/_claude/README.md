@@ -26,20 +26,22 @@ vault 側はパス長を短く保つためフラットに置く（`09_配布物/
 ANSI として読み、日本語のメッセージでパースに失敗する（実測）。
 **冒頭の `[Console]::OutputEncoding` も消さない。**無いと stderr が CP932 で出て文字化けする。
 
-### 動作確認（2026-09-24 実施）
+### 動作確認（2026-09-25 更新）
 
-`{"tool_input":{"command":"..."}}` を標準入力に流して終了コードを見た。**30件すべて期待どおり。**
+`{"tool_input":{"command":"..."}}` を標準入力に流して終了コードを見た。**33件すべて期待どおり**（通す12件・塞ぐ21件）。
 
 | 通る（exit 0） | `gh pr view --comments` ／ `gh pr diff` ／ `gh pr comment -b "..."` ／ `gh pr create` ／ `gh pr review` ／ `git push` ／ `mvn test` ／ `git diff develop...HEAD -- docs/` ／ `git log` ／ `git status` |
 |---|---|
-| **塞ぐ（exit 2）** | `gh pr view 3` ／ `gh pr diff 12` ／ `gh pr comment 5 -b x` ／ `-R` `--repo` 付き ／ `gh pr list` ／ `gh pr checkout` ／ `gh api` ／ `gh repo` ／ `gh search` ／ `gh browse` ／ `gh auth` ／ `git fetch` ／ `git clone` ／ `git ls-remote` ／ `git pull` ／ `git remote add` ／ `api.github.com` |
+| **塞ぐ（exit 2）** | `gh issue list` ／ `gh issue view 3` ／ `gh issue list -R ...` ／ `gh pr view 3` ／ `gh pr diff 12` ／ `gh pr comment 5 -b x` ／ `-R` `--repo` 付き ／ `gh pr list` ／ `gh pr checkout` ／ `gh api` ／ `gh repo` ／ `gh search` ／ `gh browse` ／ `gh auth` ／ `git fetch` ／ `git clone` ／ `git ls-remote` ／ `git pull` ／ `git remote add` ／ `api.github.com` |
 
-**確認できていないのは配線のほう。**`settings.json` の `$CLAUDE_PROJECT_DIR` が展開され、
-PreToolUse が実際に発火するかは、リポジトリを立ててから確かめる（→ 試走）。
-**発火しなければ素通りする**（スクリプトが見つからず exit 1 になり、ブロックにならない）ので、
-**試走の最初に `gh pr view 3` を1回叩いて、止まることを確かめる。**
+**配線も確認済み**（2026-09-24、`ai-training` の実セッションで `gh pr view 3` が止まった）。
+**配線が外れると素通りする**（スクリプトが見つからず exit 1 になり、ブロックにならない）ので、
+**期の始めに `gh pr view 3` を1回叩いて、止まることを確かめる。**
 
 ### 03 からの差分
 
 `git remote add` / `git remote set-url` を1行足した。`git fetch` を塞いでも、
 リモートを足してから取りに行く経路が残るため（2026-09-24）。
+
+`gh issue` を丸ごと塞いだ（2026-09-25）。講師が改修項目を `ai-training` の issue に立てるため。
+あわせてブロック時のメッセージを「この GitHub 操作を塞いでいます」に一般化した（PR 以外でも止まるので）。
