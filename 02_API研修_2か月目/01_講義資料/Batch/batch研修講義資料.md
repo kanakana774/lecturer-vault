@@ -54,7 +54,7 @@ Web API開発で使う Dependency Injection (DI) といった Spring Boot の恩
 ## 2-2. 主要な構成要素
 
 [公式ドキュメント](https://spring.pleiades.io/spring-batch/reference/domain.html)
-![[Pasted image 20260528160256.png]]
+![SpringBatchの構成要素](_attachments/SpringBatchの構成要素.png)
 
 | コンポーネント | 役割 |
 | :--- | :--- |
@@ -71,7 +71,7 @@ Web API開発で使う Dependency Injection (DI) といった Spring Boot の恩
 課題のプロジェクトは Spring Batch 5 なので、起動役は **JobLauncher** です。公式ドキュメントの最新版（Spring Batch 6）や上の図では **JobOperator** になっていますが、役割は同じです。
 下の図の ItemReader / ItemProcessor / ItemWriter は、次の 2-3 で説明します。
 
-![[batch全体像.png]]
+![SpringBatchの全体像](_attachments/SpringBatchの全体像.png)
 [参考](https://terasoluna-batch.github.io/guideline/5.0.0.RELEASE/ja/Ch02_SpringBatchArchitecture.html#Ch02_SpringBatchArch_Detail_ProcessFlow)
 
 
@@ -93,7 +93,7 @@ Spring Batchには、処理内容に応じて使い分ける2つのモデルが�
 
 下の図は TERASOLUNA のサンプルを描き直したものなので、部品名（`MyBatisCursorItemReader` など）とテーブル名はそのサンプルのものです。1回の Write とコミットが1つのトランザクション（Framework Transaction）に入っていることを確認してください。
 
-![[チャンクモデルの流れ.excalidraw]]
+![チャンクモデルの流れ](_attachments/チャンクモデルの流れ.png)
 
 
 ### 2. Tasklet（タスクレット）モデル【単発処理用】
