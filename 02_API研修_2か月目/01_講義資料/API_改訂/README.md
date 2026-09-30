@@ -82,6 +82,7 @@ MyBatis Spring Boot Starter 3.0.4 / PostgreSQL 17.5）。**推測で書かない
 
 - 元ネタ: `API/API研修説明用資料.canvas` の「一件GET」ノードと、`_general/_excalidraw/Drawing 2026-06-04 10.09.11.excalidraw.md`
   の社長・上司・部下の図（同じファイルにメモリの図も同居しているので、そのまま埋め込まず本文にコードで起こした）
+- §5-2 の図は `_excalidraw/08_作図_例外はエスカレーション.excalidraw.md` に新しく描いた（会社とアプリの2列）。docs に移すときは PNG に書き出す
 - canvas の `@PathVariable String` + `Integer.parseInt` は、`Integer` で受ける形に改めた
 - 役の割り当て（部下＝Mapper／上司＝Service／社長＝`GlobalErrorController`、Controller は素通し）は
   canvas・図に明記が無く、この資料で決めたもの
