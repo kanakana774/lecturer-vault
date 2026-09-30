@@ -47,7 +47,32 @@ DI は 05 の「誰かが外から渡す必要がある」を 06 で回収する
 DEBUG ログで確認した内容に基づく（2026-09-17、Spring Boot 3.4.1 / Java 21 /
 MyBatis Spring Boot Starter 3.0.4 / PostgreSQL 17.5）。**推測で書かない。**
 
-`07` のコード例は、`origin/develop`（雛形）にそのまま組み込んで起動し、`POST /sports` を叩いて確認した
-（2026-09-30）。正常系で 201 と `Location: .../sports/{id}`、`name` 欠落・空白・21 文字、`playerCount`
-欠落で 400、DB に `version = 0` で入ることまで確認済み。`int` で受けると `@NotNull` が効かない件は
-`review/_review-kit/curriculum-feedback/todo-app-api.md` C-19 の実測に基づく。
+## `07` の罠（講師用）
+
+**`07` はわざと、写しただけでは動かないように作ってある。** 手本が無くなる GET・PUT・DELETE の前に、
+エラーを読んで自分で直す（または質問して直す）経験を1回させるため。研修生には「罠がある」ことだけを
+本文冒頭で伝え、中身は書いていない。**この節は docs に移植しない。**
+
+| # | 罠 | 仕込み方 | 踏むとどうなるか（実測） | 気づかせたいこと |
+| :--- | :--- | :--- | :--- | :--- |
+| 1 | **`version` を入れていない** | テーブル定義で `VERSION` は NOT NULL と見せ、`§1-2` の期待値も 0 と書いたうえで、Controller・Service のどこにも `setVersion` が無い | 500。`Caused by: org.postgresql.util.PSQLException: ERROR: null value in column "version" of relation "sport" violates not-null constraint` ／ `詳細: Failing row contains (1, サッカー, 11, null).` | 一番下の `Caused by:` を読む。どこで入れるべきか（業務の既定値なので Service。`0` は定数に＝マジックナンバー禁止） |
+| 2 | **文字数の上限** | 例は `@Size(max = 20)`。tag の上限（30）は本文に書かず「API 設計書から読み取れ」とだけ書いた | 20 のまま写すと、21〜30 文字の tag が 400 になる。§8 の境目テストで気づく | 数字は設計書から取る |
+| 3 | 名前の置き換え漏れ（仕込んではいないが、ほぼ全員が踏む） | `keyProperty="sportId"` を tag 側で直し忘れる／Entity のフィールド名と食い違う | 500。`No setter found for the keyProperty 'tagId' in '...SportEntity'.`（§9-2 の読み方の例にこのログを使っている） | ③ のメッセージにフィールド名とクラス名が出る |
+| 4 | 同上 | XML の `namespace` と Mapper インターフェースのパッケージが食い違う／XML を `mapper-locations` の外に置く | 500。`BindingException: Invalid bound statement (not found): jp.aevic.todo.mapper.sport.SportMapper.insert` | XML とインターフェースの対応づけ（namespace + id）。置き場所は `application.properties` で決まっている |
+
+- **罠 1 を踏まずに通った場合**は、答えのコードと同じく Controller で `0` を入れている可能性がある。
+  誤りではないが、「なぜそこか」を聞いて Service との違いを考えさせる
+- `int` で受けると `@NotNull` が効かない件（C-19）は、エラーが出ず自力では気づけないので罠にせず、
+  本文 §3 に ⚠️ で書いた
+- Form の getter / setter を「省略」のまま書かないと、コンパイルエラーになるだけ（罠にはならない）
+
+### 実測の条件
+
+`07` のコード例は `origin/develop`（雛形）に組み込み、使い捨て DB（`SPORT` テーブルのみ）で起動して
+確認した（2026-09-30）。
+
+- 罠 1 を直した状態（Service で `setVersion` する）で、正常系が 201 と `Location: .../sports/{id}`、
+  `name` 欠落・空白・21 文字と `playerCount` 欠落が 400、DB に `version = 0` で入る
+- 罠 1・3・4 は上の表のとおり 500。Postman には原因の出ない汎用メッセージしか返らない（§9-1）
+- 1 回の例外で出るログは約 165 行、`Caused by:` は 2 段
+- `int` で受けると `@NotNull` が効かない件は `review/_review-kit/curriculum-feedback/todo-app-api.md` C-19 の実測に基づく

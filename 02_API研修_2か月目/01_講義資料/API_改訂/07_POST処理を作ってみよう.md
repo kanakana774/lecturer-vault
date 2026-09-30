@@ -4,9 +4,19 @@
 > - この章の例を手本にして、**tag の登録（`POST /tags`）を自分で書ける**
 > - Form・Controller・Entity・Service・Mapper の**それぞれに何を書くか**が分かる
 > - 書いた API を Postman で叩いて、**201 と 400 が返ること**を確かめられる
+> - エラーが出たときに、**ログを読んで原因の場所を絞り込める**
 
 ここからは実際にコードを書きます。
 リクエストがどのクラスを通るかは `04_課題で作るものの全体像` §2 の図のとおりです。忘れていたら見返してください。
+
+> [!warning] この章のコードは、そのまま写しても動きません
+> **わざと、いくつか罠を仕込んであります。** 写して動かすとエラーになります。
+>
+> この先の課題（GET・PUT・DELETE）は、手本無しで自分で書きます。そのときにはエラーを読んで自分で直す力が要ります。
+> この章はその練習です。
+>
+> エラーが出たら §9 の手順で読み、調べて、直してください。
+> **15 分調べても進まなければ、講師に聞いてください。** 聞き方は §9-5 にあります。
 
 ---
 
@@ -33,12 +43,12 @@ POST http://localhost:8080/sports
 
 `SPORT` テーブルに、次の値で 1 行登録します。
 
-| カラム | 型 | 制約 | 登録する値 | どこから来るか |
-| :--- | :--- | :--- | :--- | :--- |
-| `SPORT_ID` | SERIAL | 主キー | 1 | **DB が自動採番** |
-| `NAME` | varchar(20) | NOT NULL | サッカー | リクエスト |
-| `PLAYER_COUNT` | integer | NOT NULL | 11 | リクエスト |
-| `VERSION` | integer | NOT NULL | 0 | **自分で入れる**（§6） |
+| カラム | 型 | 制約 | 登録する値 |
+| :--- | :--- | :--- | :--- |
+| `SPORT_ID` | SERIAL | 主キー | 1（DB が自動採番） |
+| `NAME` | varchar(20) | NOT NULL | サッカー |
+| `PLAYER_COUNT` | integer | NOT NULL | 11 |
+| `VERSION` | integer | NOT NULL | 0 |
 
 ### 1-3. 返すレスポンス
 
@@ -71,12 +81,6 @@ tag のファイルは `tag` のフォルダに置きます。
 > [!note]- tag の Mapper XML は雛形にもうある
 > `src/main/resources/META-INF/jp/aevic/todo/mapper/TagMapper.xml` が、中身が空の状態で用意されています。
 > 新しく作らず、ここに SQL を書き足してください。
->
-> XML をこのフォルダの下に置くのは、`application.properties` でそう決めてあるからです。
-> ```properties
-> mybatis.mapper-locations=classpath*:/META-INF/jp/aevic/todo/mapper/**/*.xml
-> ```
-> 別の場所に置くと MyBatis が見つけられず、実行時にエラーになります。
 
 ---
 
@@ -116,7 +120,7 @@ public class SportCreateForm {
 | `@Size(max = 20)` | 文字数が 20 以下 | 400 |
 | `@NotNull` | null でない | 400 |
 
-**上限の 20 のような数字は、自分で決めません。** API 設計書の 400 の条件に書いてあります。tag なら「1 文字以上 30 文字以内」です。
+**上限の 20 のような数字は、自分で決めません。** API 設計書の 400 の条件に書いてあります。
 
 `@NotBlank` の時点で空文字は通らないので、`@Size` に `min = 1` は要りません。
 
@@ -249,8 +253,6 @@ public class SportController {
 2. Service を呼ぶ
 3. レスポンスを作って返す
 
-`version` の初期値はここでは入れません。「新しく登録したら 0 から始まる」は**業務のルール**なので Service に書きます（§6）。
-
 ### 5-3. Location ヘッダーを作る
 
 URL を作る `LocationUtil` と、パスを持つ `CreatedLocationPaths` は**雛形に用意されています。** 自分では作りません。
@@ -289,9 +291,6 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class SportService {
-    // 登録時の更新回数
-    private static final int INITIAL_VERSION = 0;
-
     // 依存クラス
     private final SportMapper sportMapper;
 
@@ -311,9 +310,6 @@ public class SportService {
      * @return 採番されたスポーツID
      */
     public Integer create(SportEntity sportEntity) {
-        // 新規登録なので、更新回数は0から始める
-        sportEntity.setVersion(INITIAL_VERSION);
-
         // INSERTすると、採番されたIDがsportEntityのsportIdに入る
         sportMapper.insert(sportEntity);
         return sportEntity.getSportId();
@@ -321,14 +317,7 @@ public class SportService {
 }
 ```
 
-### 6-1. 更新回数の初期値
-
-`VERSION` カラムは NOT NULL で、DB 側に既定値がありません。**登録するときに自分で 0 を入れます。**
-
-- **Service に書く** … 「新規登録は 0 から」は業務のルールです（`05_なぜクラスを分けるのか` §2）
-- **`0` と直接書かず、定数にする** … コードの途中にいきなり出てくる数字は、読む人に意味が伝わりません。コーディングガイドでも禁止されています（マジックナンバー）
-
-### 6-2. 採番された ID の受け取り方
+### 6-1. 採番された ID の受け取り方
 
 `sportMapper.insert(...)` は何も返しません（`void`）。それでも、次の行で ID を取り出せます。
 
@@ -430,26 +419,107 @@ SELECT * FROM SPORT;
 ```
 
 **境目の値も試します。** `name` が 20 文字なら 201、21 文字なら 400 になるはずです。
-tag なら 30 文字と 31 文字です。
+tag の境目がいくつかは、API 設計書から自分で読み取ってください。
 
 ---
 
-## 9. 課題に取り組むときの注意
+## 9. エラーが出たら
 
-### 9-1. クラス名は、左から読んで絞り込めるように
+### 9-1. 500 が返ったら、Postman ではなくコンソールを見る
+
+500 が返っても、Postman に届くのはこれだけです。
+
+```json
+{"title":"INTERNAL_SERVER_ERROR","status":500,"code":"internal-server-error.unexpected","message":"Internal Server Error Unexpected."}
+```
+
+**ここには原因が書いてありません。** 利用者に内部の事情を見せないように、アプリがわざと伏せています。
+原因は、`mvn spring-boot:run` を実行した**ターミナル**に出ています。
+
+400 のときも同じです。どの項目が引っかかったかは、ターミナルのログで確かめます。
+
+### 9-2. スタックトレースを読む
+
+エラーが起きると、ターミナルに数百行のログが出ます。これを**スタックトレース**と言います。
+全部読む必要はありません。**見る場所は 3 つだけ**です。
+
+実際のログから、見る場所だけを抜き出すとこうなります（`keyProperty` を書き間違えたとき）。
+
+```
+ERROR ... MyExceptionLogger : URI: /sports, method: POST, ... Exception: org.mybatis.spring.MyBatisSystemException, ...
+
+org.mybatis.spring.MyBatisSystemException:                                   ← ① 何が起きたか
+	at org.mybatis.spring....                                                    （ライブラリの行が続く）
+	at jp.aevic.todo.logic.service.sport.SportService.create(SportService.java:38)       ← ② 自分のコード
+	at jp.aevic.todo.app.controller.sport.SportController.create(SportController.java:52)
+	at org.springframework....                                                   （100 行以上続く）
+	...
+Caused by: org.apache.ibatis.executor.ExecutorException: Error getting generated key ...
+	...
+Caused by: org.apache.ibatis.executor.ExecutorException:
+    No setter found for the keyProperty 'tagId' in 'jp.aevic.todo.entity.sport.SportEntity'.   ← ③ 根本の原因
+```
+
+| # | 見る場所 | 読み取れること |
+| :--- | :--- | :--- |
+| ① | 先頭の例外名 | どの道具（Spring・MyBatis・DB…）の中で起きたか |
+| ② | `at jp.aevic.todo` で始まる行 | **自分のコードのどの行**から呼んだときに起きたか。ファイル名と行番号が付いている |
+| ③ | **一番下の `Caused by:`** | 本当の原因。上の例外は、これを包み直したもの |
+
+**③ から読みます。** たいていは、原因がそのまま英語で書いてあります。
+`at org.springframework...` のような**ライブラリの行は読み飛ばして**かまいません。
+
+> [!note]- メッセージが日本語と英語で混ざることがある
+> DB（PostgreSQL）が返すメッセージは、DB の設定によって日本語になったり英語になったりします。
+> 検索するときは英語のほうが情報が多いので、英語の部分を使ってください。
+
+### 9-3. 調べる
+
+1. **③ のメッセージをそのまま検索する。** ただし `jp.aevic.todo...` のような自分のプロジェクトの名前や、値の部分は外す
+2. **道具の名前を入れる。** そのエラーが Spring Boot・MyBatis・PostgreSQL・Java のどれの持ち物かを ① から判断して、検索語に入れる
+   （例：`mybatis No setter found for the keyProperty`）
+3. **② の行を開いて、そこで渡している値を確かめる**
+
+### 9-4. 値の中身を見る（デバッガ）
+
+「たぶんこの値が入っているはず」を、**推測のままにしない**ことが大事です。
+VS Code のデバッガで止めて、変数の中身を見ます。手順は `06.参考資料/デバッグ方法.md` にあります。
+
+- **止める場所は ② の行**（エラーが起きる直前）
+- そこで、**渡そうとしている Entity の各フィールドに何が入っているか**を見る
+- 期待していた値と違うフィールドがあれば、そこが原因の入口
+
+### 9-5. 講師に聞くとき
+
+次の 4 つを揃えてから聞いてください。**揃える途中で自己解決することも多いです。**
+
+| | 例 |
+| :--- | :--- |
+| 何をしたか | `POST /tags` に `{"name": "仕事"}` を送った |
+| 何を期待したか | 201 が返る |
+| 実際どうなったか | 500 が返った。ログの一番下の `Caused by:` は「〜」 |
+| 何を試したか | 「〜」で検索して〜を見た。デバッガで止めたら `name` には値が入っていた |
+
+「動きません」だけだと、講師は同じことを 1 から聞き直すことになります。
+
+---
+
+## 10. 課題に取り組むときの注意
+
+### 10-1. クラス名は、左から読んで絞り込めるように
 
 `CreateSportForm` ではなく **`SportCreateForm`** です。
 「スポーツの → 登録の → Form」と、左から読むほど対象が絞り込まれる順に並べます。
 ファイルを名前順に並べたときに、同じ対象のクラスが固まるという利点もあります。
 
-### 9-2. Form と Entity は `new` する
+### 10-2. Form と Entity は `new` する
 
 Controller・Service・Mapper は DI で受け取りますが、**Form と Entity は DI しません。** `@Component` なども付けません。
 
 Spring が管理するインスタンスは、アプリ全体で 1 つだけです（`06_フレームワークとORマッパー` §3-3）。
 Form や Entity は**リクエストのたびに中身が違う**ので、1 つを使い回すわけにいきません。
 
-### 9-3. Javadoc の `@param` / `@return` には説明を書く
+### 10-3. Javadoc の `@param` / `@return` には説明を書く
 
 ```java
  * @param sportCreateForm リクエストボディを詰めたForm   ← ○
@@ -457,8 +527,3 @@ Form や Entity は**リクエストのたびに中身が違う**ので、1 つ�
 ```
 
 名前だけだと、書いていないのと同じです。
-
-### 9-4. 調べるときは、ツールの名前を入れる
-
-その書き方が **Spring Boot・MyBatis・Java のどれの持ち物か**を考えて、その名前を検索語に入れます。
-たとえば XML の書き方が分からないなら、「mybatis insert 自動採番」のように `mybatis` を入れないと出てきません。
