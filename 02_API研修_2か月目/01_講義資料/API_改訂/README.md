@@ -4,8 +4,9 @@
 `todo-app-api-docs/05.講義資料/01.講義/` の `01`〜`03` をこの `01`〜`06` で置き換え、`07` を `04.post処理を作ってみよう.md` と差し替える（研修生に配布されるのはそちら）。
 
 - **`API/` は触らない。** 現行の講義はそちらで回っている
-- **移植先の都合**: docs では画像が相対パス参照（`../.attachments/...`）になる。
-  この vault では Obsidian の basename 解決に任せているので、移植時に書き換える
+- **図と画像は GitHub でも表示できる形にしてある。** 本文は `![説明|幅](_attachments/xxx.png)` の相対パスで埋め込み、
+  Mermaid と Obsidian の `![[...]]` は使わない。画像はこのフォルダの `_attachments/` にまとめ、図の元は `_excalidraw/` に置く
+  （図を直したら PNG を書き出し直す。`API/_attachments/` から持ってきた画像は、basename が重ならないよう名前を付け直したコピー）
 
 ---
 
@@ -83,7 +84,7 @@ MyBatis Spring Boot Starter 3.0.4 / PostgreSQL 17.5）。**推測で書かない
 
 - 元ネタ: `API/API研修説明用資料.canvas` の「一件GET」ノードと、`_general/_excalidraw/Drawing 2026-06-04 10.09.11.excalidraw.md`
   の社長・上司・部下の図（同じファイルにメモリの図も同居しているので、そのまま埋め込まず本文にコードで起こした）
-- §5-1 の図は `_excalidraw/08_作図_例外はエスカレーション.excalidraw.md` に新しく描いた（社長・上司・部下と命令／報告の矢印に、各自の try-catch・if のコードを添える。アプリの層は載せない）。docs に移すときは PNG に書き出す
+- §5-1 の図は `_excalidraw/08_作図_例外はエスカレーション.excalidraw.md` に新しく描いた（社長・上司・部下と命令／報告の矢印に、各自の try-catch・if のコードを添える。アプリの層は載せない）。本文には書き出した `_attachments/08_作図_例外はエスカレーション.png` を載せている
 - canvas の `@PathVariable String` + `Integer.parseInt` は、`Integer` で受ける形に改めた
 - 図は会社の例（呼び出し＝命令、throw＝報告）だけで描き、層は載せていない。人の役とクラスを1対1で重ねると混乱するため、
   §5-2 でも人の役とは対応させず、各層が例外について何をするかだけを書いた
@@ -94,7 +95,7 @@ MyBatis Spring Boot Starter 3.0.4 / PostgreSQL 17.5）。**推測で書かない
 ## `09` の元ネタと裏取り
 
 - 元ネタ: canvas の「API 3回目」ノード（Java で `version` を比べてから更新する `updateTag` と「どこが問題でしょうか？」）、
-  `API/05.排他制御.md`、`API/_excalidraw/98_作図_楽観ロックの具体例.excalidraw.md`（§3 にそのまま埋め込んだ。docs に移すときは PNG に）
+  `API/05.排他制御.md`、`API/_excalidraw/98_作図_楽観ロックの具体例.excalidraw.md`（書き出して `_attachments/09_作図_更新消失.png` として §3 に載せた）
 - **§5 の書き方は「悪い例」として出していない。** TOCTOU を考えるきっかけとして素直な実装を置き、§6 で止めて見せ、
   §7 で1つの答え、§10 で答えを書かない問い（存在確認と UPDATE の間の削除＝C-18）を残す構成にした
 - 実測（2026-09-30、`origin/develop` に組み込み、デバッガの代わりに確認と更新の間に 3 秒の sleep）:
