@@ -82,10 +82,10 @@ MyBatis Spring Boot Starter 3.0.4 / PostgreSQL 17.5）。**推測で書かない
 
 - 元ネタ: `API/API研修説明用資料.canvas` の「一件GET」ノードと、`_general/_excalidraw/Drawing 2026-06-04 10.09.11.excalidraw.md`
   の社長・上司・部下の図（同じファイルにメモリの図も同居しているので、そのまま埋め込まず本文にコードで起こした）
-- §5-1 の図は `_excalidraw/08_作図_例外はエスカレーション.excalidraw.md` に新しく描いた（3人のメソッドをコードで書き、呼び出しと throw を矢印で結ぶ）。docs に移すときは PNG に書き出す
+- §5-1 の図は `_excalidraw/08_作図_例外はエスカレーション.excalidraw.md` に新しく描いた（社長・上司・部下と命令／報告の矢印に、各自の try-catch・if のコードを添える。アプリの層は載せない）。docs に移すときは PNG に書き出す
 - canvas の `@PathVariable String` + `Integer.parseInt` は、`Integer` で受ける形に改めた
 - 図は会社の例（呼び出し＝命令、throw＝報告）だけで描き、層は載せていない。人の役とクラスを1対1で重ねると混乱するため、
-  §5-2 では各層が ①〜④ のどれをしているかだけを表にした
+  §5-2 でも人の役とは対応させず、各層が例外について何をするかだけを書いた
 - 実測（2026-09-30、`origin/develop` に組み込み）: `GET /sports/1` → 200 と JSON、`/sports/999` → 404
   `notFound.resource`、`/sports/abc` → 500（C-16）。存在チェックを外すと 200・`Content-Length: 0`。
   404 のとき `"ERROR" dispatch for GET "/error"` が出て `GlobalErrorController` が受け止めることをログで確認
