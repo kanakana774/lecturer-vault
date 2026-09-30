@@ -274,6 +274,6 @@ ORDER BY STEP_EXECUTION_ID;
 | `READ_COUNT` | Reader が読んだ件数 |
 | `FILTER_COUNT` | Processor が `null` を返して捨てた件数 |
 | `WRITE_COUNT` | Writer に渡った件数（＝読んだ件数 − 捨てた件数） |
-| `COMMIT_COUNT` | コミットした回数。チャンク1つにつき1回で、最後に「もう読むものが無い」と確かめた回も1回と数える（3,000件・チャンクサイズ100なら31回） |
+| `COMMIT_COUNT` | コミットした回数。チャンク1つにつき1回で、最後に「もう読むものが無い」と確かめた回も1回と数える（課題の6,000件・チャンクサイズ100なら61回） |
 
 絞り込んだ後の件数は `WRITE_COUNT` に出ます。Processor の絞り込みが正しいかは、`WRITE_COUNT` と、同じ条件で数えたSQLの結果を比べれば確かめられます。
