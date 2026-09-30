@@ -28,6 +28,7 @@
 | | `05_なぜクラスを分けるのか.md` | アーキテクチャ、レイヤード3層、凝集度、結合度、分けるコスト |
 | | `06_フレームワークとORマッパー.md` | Spring Boot、MyBatis、起動シーケンスとDI |
 | 課題 | `07_POST処理を作ってみよう.md` | スポーツ登録を例に、Form〜Mapper XML の書き方。tag に置き換えて書かせる |
+| | `08_1件取得と例外.md` | パスパラメータ、例外を自分で投げる、社長・上司・部下で「誰が投げて誰が受け止めるか」 |
 
 **「何を作るか（04）→ なぜその形か（05）→ 何がそれを動かすか（06）」** の一本道にする。
 DI は 05 の「誰かが外から渡す必要がある」を 06 で回収する形にし、二重説明を避ける。
@@ -76,3 +77,14 @@ MyBatis Spring Boot Starter 3.0.4 / PostgreSQL 17.5）。**推測で書かない
 - 罠 1・3・4 は上の表のとおり 500。Postman には原因の出ない汎用メッセージしか返らない（§9-1）
 - 1 回の例外で出るログは約 165 行、`Caused by:` は 2 段
 - `int` で受けると `@NotNull` が効かない件は `review/_review-kit/curriculum-feedback/todo-app-api.md` C-19 の実測に基づく
+
+## `08` の元ネタと裏取り
+
+- 元ネタ: `API/API研修説明用資料.canvas` の「一件GET」ノードと、`_general/_excalidraw/Drawing 2026-06-04 10.09.11.excalidraw.md`
+  の社長・上司・部下の図（同じファイルにメモリの図も同居しているので、そのまま埋め込まず本文にコードで起こした）
+- canvas の `@PathVariable String` + `Integer.parseInt` は、`Integer` で受ける形に改めた
+- 役の割り当て（部下＝Mapper／上司＝Service／社長＝`GlobalErrorController`、Controller は素通し）は
+  canvas・図に明記が無く、この資料で決めたもの
+- 実測（2026-09-30、`origin/develop` に組み込み）: `GET /sports/1` → 200 と JSON、`/sports/999` → 404
+  `notFound.resource`、`/sports/abc` → 500（C-16）。存在チェックを外すと 200・`Content-Length: 0`。
+  404 のとき `"ERROR" dispatch for GET "/error"` が出て `GlobalErrorController` が受け止めることをログで確認
