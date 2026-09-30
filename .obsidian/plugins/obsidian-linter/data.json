@@ -277,7 +277,6 @@
   "recordLintOnSaveLogs": false,
   "displayChanged": true,
   "suppressMessageWhenNoChange": false,
-  "enableDiffPreviewView": true,
   "suppressLintAllFilesConfirmationModal": false,
   "suppressLintAllFilesInFolderConfirmationModal": false,
   "lintOnFileChange": false,
@@ -296,5 +295,6 @@
     "minimumNumberOfDollarSignsToBeAMathBlock": 2,
     "escapeCharacter": "\"",
     "removeUnnecessaryEscapeCharsForMultiLineArrays": false
-  }
+  },
+  "enableDiffPreviewView": true
 }
